@@ -3,23 +3,23 @@ from pathlib import Path
 
 from coordinates import get_gps_coordinates
 from exceptions import ApiServiceError, CantGetCoordinates
-from weather_api_service import get_weather
-from weather_formatter import format_weather
 from history import save_weather, JSONFileWeatherStorage
+from config import formatter, weather_service, weather_printer
 
 
 def main():
     try:
         coordinates = get_gps_coordinates()
     except CantGetCoordinates:
-        print("Не удалось получить GPS координаты")
+        print("Не удалось получить GPS координаты.")
         exit(1)
     try:
-        weather = get_weather(coordinates)
+        weather = weather_service.get_weather(coordinates)
     except ApiServiceError:
         print(f"Не удалось получить погоду по координатам {coordinates}")
         exit(1)
-    print(format_weather(weather))
+    formatted_weather = formatter.format_weather(weather)
+    weather_printer.display_weather(formatted_weather)
 
     save_weather(
         weather,

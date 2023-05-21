@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from typing import TypedDict, Protocol
 
-from weather_api_service import Weather
+from weather_models import Weather
 from weather_formatter import format_weather
 
 
@@ -43,7 +43,7 @@ class JSONFileWeatherStorage:
             "weather": format_weather(weather)
         })
         self._write(history)
-    
+
     def _init_storage(self) -> None:
         if not self._jsonfile.exists():
             self._jsonfile.write_text("[]")
