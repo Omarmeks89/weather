@@ -35,10 +35,7 @@ class CurrentWeatherPrinter(BaseWeatherPrinter):
         weather_items = asdict(weather)
         return self._create_preview(weather_items)
 
-    def _create_preview(
-            self,
-            items: dict[str, str],
-            ) -> dict[str, str]:
+    def _create_preview(self, items: dict[str, str]) -> dict[str, str]:
         for k, v in items.items():
             v = self._stringify_weather_item(v)
             items[k] = v

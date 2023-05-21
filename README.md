@@ -20,7 +20,11 @@ Mac. [О whereami](https://github.com/robmathers/WhereAmI).
 Данный материал подготовлен в качестве примера к [видео](https://www.youtube.com/watch?v=dKxiHlZvULQ) и [книге
 «Типизированный Python»](https://t.me/t0digital/151).
 
+
 ### Original repository link
+
+Link on original repository below.
+
 > https://github.com/alexey-goloburdin/weather.git
 
 Author: Alexey Goloburdin
