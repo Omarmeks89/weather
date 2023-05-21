@@ -41,7 +41,10 @@ class BaseTemperature(Protocol):
 
     @property
     def abs_value(self) -> float:
-        ...
+        raise NotImplementedError
+
+    def draw(self) -> str:
+        raise NotImplementedError
 
 
 class BaseWeatherPalette(ABC):
