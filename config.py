@@ -36,8 +36,8 @@ DEF_DATETIME_FMT = app_config["DATETIME_FMT"]
 OPENWEATHER_URL = (
     "https://api.openweathermap.org/data/2.5/weather?"
     "lat={latitude}&lon={longitude}&"
-    "appid=" + OPENWEATHER_API + "&lang=ru&"
-    "units=metric"
+    "appid=" + OPENWEATHER_API + f"&lang={app_config['OPW_DEF_LANG']}&"
+    f"units={UNITS}"
 )
 
 # service items setup
