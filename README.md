@@ -51,6 +51,18 @@ whereami -r
 ```
 Note, that now app can not choose exact OS - this will be fixet a bit later.
 
+## Remark
+
+Original project philosofy is using standard `python` library only.
+For working with `.env` file you may install `dotenv`:
+
+```bash
+pip install python-dotenv
+```
+
+or working without it - app have a little dotenv-mock in settings,
+so you may use `.env` file without `dotenv`.
+
 ## Plans / Ideas
 
 1) Make command / flags system for select language and units scale;
