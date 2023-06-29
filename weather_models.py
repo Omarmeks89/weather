@@ -1,19 +1,22 @@
 from dataclasses import dataclass
+from typing_extensions import Self
 from datetime import datetime
-from typing import TypeAlias, NoReturn
+from typing import TypeAlias, Union
 from abc import ABC, abstractmethod
 from enum import Enum
+
+from base_types import WeatherArg, WeatherInfoPart
 
 
 Celsius: TypeAlias = float
 WeatherType: TypeAlias = str
-TemperatureValue: TypeAlias = float
+TemperatureValue: TypeAlias = Union[int, float]
 
 
 __all__ = [
         "CelsiusTemperature",
         "FarenheitTemperature",
-        "BaseTemperature",
+        "BaseWeatherTemperature",
         "Weather",
         "WeatherModel",
         "FormattedWeather",
@@ -28,12 +31,28 @@ class _TempScaleUnicodeSymbols(str, Enum):
     FARENHEIT: str = "\u2109"
 
 
-class BaseTemperature(ABC):
+class _AbsTemperatureMixin(ABC):
+    """Mixin that repr-ts add temperature interface."""
+
+    @property
+    @abstractmethod
+    def abs_value(self) -> TemperatureValue:
+        pass
+
+
+class BaseWeatherTemperature(_AbsTemperatureMixin, WeatherInfoPart):
+    """Base class, represents temperature object."""
 
     _scale = _TempScaleUnicodeSymbols
 
-    def __init__(self, temp: TemperatureValue) -> None:
-        self._temp = temp
+    def __init__(self, value: WeatherArg) -> None:
+        """TODO do we type check or assert here?"""
+        self._temp = value.value
+        self._temp_kind = ""
+
+    @classmethod
+    def rebuild(cls, item: WeatherArg) -> Self:
+        return cls(item)
 
     def __repr__(self) -> str:
         return f"{type(self).__name__} {self._temp}{self._temp_kind}"
@@ -42,19 +61,27 @@ class BaseTemperature(ABC):
     def kind(self) -> str:
         return self._temp_kind
 
-    @property
-    @abstractmethod
-    def abs_value(self) -> NoReturn:
-        """abs value celsius."""
-        pass
-
     def draw(self) -> str:
         return f"{self._temp}{self._temp_kind}"
 
 
-class CelsiusTemperature(BaseTemperature):
+class BaseWeatherIconKind(WeatherInfoPart):
+    """Base class, represents Unicode icon object."""
 
-    def __init__(self, temp: TemperatureValue) -> None:
+    def __init__(self, value: WeatherArg) -> None:
+        self._value = value
+
+    @classmethod
+    @abstractmethod
+    def rebuild(cls, item: WeatherArg) -> Self: pass
+
+    def draw(self) -> str:
+        return str(self._value)
+
+
+class CelsiusTemperature(BaseWeatherTemperature):
+
+    def __init__(self, temp: WeatherArg) -> None:
         super().__init__(temp)
         self._temp_kind = self._scale.CELSIUS
 
@@ -63,9 +90,9 @@ class CelsiusTemperature(BaseTemperature):
         return self._temp
 
 
-class FarenheitTemperature(BaseTemperature):
+class FarenheitTemperature(BaseWeatherTemperature):
 
-    def __init__(self, temp: TemperatureValue) -> None:
+    def __init__(self, temp: WeatherArg) -> None:
         super().__init__(temp)
         self._temp_kind = self._scale.FARENHEIT
 
@@ -100,7 +127,7 @@ class Weather:
 
 @dataclass
 class WeatherModel:
-    temperature: BaseTemperature
+    temperature: BaseWeatherTemperature
     weather_type: WeatherDescription
     sunrise: datetime
     sunset: datetime

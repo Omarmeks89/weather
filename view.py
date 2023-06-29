@@ -1,13 +1,13 @@
 from sys import stdout
 from datetime import datetime
+from typing import TypeVar
 from abc import ABC, abstractmethod
-from typing import NoReturn, TypeVar
 from dataclasses import dataclass, asdict
 
 from weather_models import FormattedWeather
 
 
-T = TypeVar("T")
+T = TypeVar("T", covariant=True)
 
 
 @dataclass(slots=True, frozen=True)
@@ -21,7 +21,7 @@ class BaseWeatherPrinter(ABC):
         self._settings = settings
 
     @abstractmethod
-    def display_weather(self, weather: FormattedWeather) -> NoReturn:
+    def display_weather(self, weather: FormattedWeather) -> None:
         pass
 
 

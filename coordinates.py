@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from subprocess import Popen, PIPE
-from typing import Literal
+from typing import Literal, Sequence
 import re
 
 from exceptions import CantGetCoordinates
@@ -48,14 +48,17 @@ def _parse_coordinates(whereami_output: bytes) -> Coordinates:
 
 
 def _parse_coord(
-        output: list[str],
+        output: Sequence[str],
         coord_type: Literal["latitude"] | Literal["longitude"]) -> float:
+    """fetch coords using re
+    return WeatherArg."""
     pattern = _create_coord_str_pattern(coord_type)
+    match_, matched_grp = None, None
     for line in output:
         match_ = pattern.match(line)
         if match_:
-            match_ = match_.groupdict()
-            return _parse_float_coordinate(match_[coord_type])
+            matched_grp = match_.groupdict()
+            return _parse_float_coordinate(matched_grp[coord_type])
     else:
         raise CantGetCoordinates
 

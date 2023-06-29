@@ -6,7 +6,7 @@ from typing import Literal
 import urllib.request
 from urllib.error import URLError
 from abc import ABC, abstractmethod
-from typing import NoReturn
+from typing import TypeAlias, Union
 
 from coordinates import Coordinates
 
@@ -19,6 +19,11 @@ from weather_models import (
         FarenheitTemperature,
 )
 from weather_utils import TemperatureScaleKind
+from base_types import NumericArg
+
+
+_Numeric: TypeAlias = Union[int, float]
+_Literal: TypeAlias = Union[str, bytes]
 
 
 class ExternalWeatherService(ABC):
@@ -45,9 +50,9 @@ class ExternalWeatherService(ABC):
 
     def _get_weather_service_response(
             self,
-            latitude: float,
-            longitude: float,
-            ) -> str:
+            latitude: _Numeric,
+            longitude: _Numeric,
+            ) -> _Literal:
         ssl._create_default_https_context = ssl._create_unverified_context
         url = self._url.format(latitude=latitude, longitude=longitude)
         try:
@@ -55,9 +60,9 @@ class ExternalWeatherService(ABC):
         except URLError:
             raise ApiServiceError
 
-    def _parse_weather_service_response(self, response: str) -> WeatherModel:
+    def _parse_weather_service_response(self, resp: _Literal) -> WeatherModel:
         try:
-            openweather_dict = json.loads(response)
+            openweather_dict = json.loads(resp)
         except JSONDecodeError:
             raise ApiServiceError
         return WeatherModel(
@@ -69,28 +74,39 @@ class ExternalWeatherService(ABC):
         )
 
     @abstractmethod
-    def _get_temperature(self, data_src: dict) -> NoReturn:
+    def _get_temperature(self, data_src: dict) -> BaseTemperature:
         pass
 
     @abstractmethod
-    def _parse_weather_descr(self, data_src: dict) -> NoReturn:
+    def _parse_weather_descr(self, data_src: dict) -> WeatherDescription:
         pass
 
     @abstractmethod
-    def _parse_sun_time(self, data_src: dict) -> NoReturn:
+    def _parse_sun_time(
+            self,
+            data_src: dict,
+            time: Literal["sunrise"] | Literal["sunset"],
+            ) -> datetime:
         pass
 
     @abstractmethod
-    def _parse_city(self, data_src: dict) -> NoReturn:
+    def _parse_city(self, data_src: dict) -> _Literal:
         pass
 
 
 class OPW_WeatherService(ExternalWeatherService):
 
     def _get_temperature(self, data_src: dict) -> BaseTemperature:
+        """set via WeatherArg -> NumericArg."""
+        temperature = self._convert_temperature_to_weather_arg(
+                data_src["main"]["temp"],
+                )
         if self._tmpr_scale is TemperatureScaleKind.CELSIUS:
-            return CelsiusTemperature(round(data_src["main"]["temp"]))
-        return FarenheitTemperature(round(data_src["main"]["temp"]))
+            return CelsiusTemperature(temperature)
+        return FarenheitTemperature(temperature)
+
+    def _convert_temperature_to_weather_arg(value: _Numeric) -> NumericArg:
+        return NumericArg(round(value))
 
     def _parse_weather_descr(self, data_src: dict) -> WeatherDescription:
         try:
@@ -110,7 +126,7 @@ class OPW_WeatherService(ExternalWeatherService):
             ) -> datetime:
         return datetime.fromtimestamp(data_src["sys"][time])
 
-    def _parse_city(self, data_src: dict) -> str:
+    def _parse_city(self, data_src: dict) -> _Literal:
         try:
             return data_src["name"]
         except KeyError:
