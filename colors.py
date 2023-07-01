@@ -1,15 +1,11 @@
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Optional
-from typing import TypeAlias
 from abc import ABC, abstractmethod
 from typing import Mapping
 
 from weather_utils import UnicodeWeatherKindIcons
-from base_types import WeatherInfoPart, WeatherColorizer, LiteralT
-
-
-ColorableT: TypeAlias = WeatherInfoPart
+from base_types import WeatherInfoPart, WeatherColorizer, LiteralT, ColorableT
 
 
 class UnicodeColorsBaseCodes(int, Enum):
