@@ -1,16 +1,25 @@
 from dataclasses import dataclass
-from typing_extensions import Self
 from datetime import datetime
-from typing import TypeAlias, Union
-from abc import ABC, abstractmethod
+from typing import TypeAlias, Union, TypeVar, Type, cast
 from enum import Enum
 
-from base_types import WeatherArg, WeatherInfoPart
+from base_types import WeatherArg, WeatherInfoPart, LiteralT
 
 
 Celsius: TypeAlias = float
 WeatherType: TypeAlias = str
 TemperatureValue: TypeAlias = Union[int, float]
+
+TemperatureT = TypeVar(
+        "TemperatureT",
+        bound="BaseWeatherTemperature",
+        covariant=True,
+        )
+IconT = TypeVar(
+        "IconT",
+        bound="BaseWeatherIconKind",
+        covariant=True,
+        )
 
 
 __all__ = [
@@ -31,28 +40,19 @@ class _TempScaleUnicodeSymbols(str, Enum):
     FARENHEIT: str = "\u2109"
 
 
-class _AbsTemperatureMixin(ABC):
-    """Mixin that repr-ts add temperature interface."""
-
-    @property
-    @abstractmethod
-    def abs_value(self) -> TemperatureValue:
-        pass
-
-
-class BaseWeatherTemperature(_AbsTemperatureMixin, WeatherInfoPart):
+class BaseWeatherTemperature(WeatherInfoPart):
     """Base class, represents temperature object."""
 
     _scale = _TempScaleUnicodeSymbols
 
     def __init__(self, value: WeatherArg) -> None:
         """TODO do we type check or assert here?"""
-        self._temp = value.value
+        self._temp = value
         self._temp_kind = ""
 
     @classmethod
-    def rebuild(cls, item: WeatherArg) -> Self:
-        return cls(item)
+    def rebuild(cls: Type[TemperatureT], item: WeatherArg) -> TemperatureT:
+        return cast(TemperatureT, cls(item))
 
     def __repr__(self) -> str:
         return f"{type(self).__name__} {self._temp}{self._temp_kind}"
@@ -62,7 +62,8 @@ class BaseWeatherTemperature(_AbsTemperatureMixin, WeatherInfoPart):
         return self._temp_kind
 
     def draw(self) -> str:
-        return f"{self._temp}{self._temp_kind}"
+        tmpr_value = self._temp.value
+        return f"{tmpr_value}{self._temp_kind}"
 
 
 class BaseWeatherIconKind(WeatherInfoPart):
@@ -72,11 +73,26 @@ class BaseWeatherIconKind(WeatherInfoPart):
         self._value = value
 
     @classmethod
-    @abstractmethod
-    def rebuild(cls, item: WeatherArg) -> Self: pass
+    def rebuild(cls: Type[IconT], item: WeatherArg) -> IconT:
+        return cast(IconT, cls(item))
+
+    @property
+    def value(self) -> LiteralT:
+        return self._value.value
 
     def draw(self) -> str:
-        return str(self._value)
+        ic_value = self._value.value
+        return str(ic_value)
+
+
+class WeatherIcon(BaseWeatherIconKind):
+    """Simple base icon."""
+
+    def __init__(self, value: WeatherArg) -> None:
+        super().__init__(value)
+
+    def __repr__(self) -> str:
+        return self.draw()
 
 
 class CelsiusTemperature(BaseWeatherTemperature):
@@ -86,8 +102,8 @@ class CelsiusTemperature(BaseWeatherTemperature):
         self._temp_kind = self._scale.CELSIUS
 
     @property
-    def abs_value(self) -> TemperatureValue:
-        return self._temp
+    def value(self) -> TemperatureValue:
+        return self._temp.value
 
 
 class FarenheitTemperature(BaseWeatherTemperature):
@@ -97,8 +113,8 @@ class FarenheitTemperature(BaseWeatherTemperature):
         self._temp_kind = self._scale.FARENHEIT
 
     @property
-    def abs_value(self) -> TemperatureValue:
-        return (self._temp - 32) * (5 / 9)
+    def value(self) -> TemperatureValue:
+        return (self._temp.value - 32) * (5 / 9)
 
 
 @dataclass(slots=True)
@@ -109,7 +125,7 @@ class WeatherDescription:
 
 @dataclass
 class FormattedWeather:
-    city: str
+    city: LiteralT
     temperature: str
     weather_descr: str
     sunrise: datetime
@@ -131,4 +147,4 @@ class WeatherModel:
     weather_type: WeatherDescription
     sunrise: datetime
     sunset: datetime
-    city: str
+    city: LiteralT

@@ -11,7 +11,8 @@ __all__ = [
 
 
 try:
-    import dotenv
+    # dotenv haven`t stub files
+    import dotenv  # type: ignore[import]
 except ImportError:
     from settings_utils import _dotenv_mock
     dotenv = _dotenv_mock()

@@ -1,13 +1,9 @@
 from enum import Enum
-from typing import MutableMapping, Mapping
+from typing import Mapping
 from typing import Optional
-from typing import Sequence, TypeAlias
-from typing import Union
+from typing import Sequence
 
-from base_types import WeatherInfoPart, WeatherColorizer
-
-
-_Literal: TypeAlias = Union[str, bytes]
+from base_types import LiteralT, ColorMapT, WeatherColorizer, _T
 
 
 class TemperatureScaleKind(str, Enum):
@@ -33,9 +29,10 @@ class UnicodeWeatherKindIcons(str, Enum):
     RAINY: str = "\U0001f327"
     TRUNDERSTORM: str = "\u26c8"
     SNOWY: str = "\u2744"
+    EMPTY: str = ""
 
 
-_OPW_WEATHER_ICONS_MAP: Mapping[Sequence[str], str] = {
+_OPW_WEATHER_ICONS: Mapping[Sequence[LiteralT], UnicodeWeatherKindIcons] = {
     _OPW_KindCodes.THUNDERSTORM.value: UnicodeWeatherKindIcons.TRUNDERSTORM,
     _OPW_KindCodes.DRIZZLE.value: UnicodeWeatherKindIcons.RAINY,
     _OPW_KindCodes.RAIN.value: UnicodeWeatherKindIcons.RAINY,
@@ -46,18 +43,15 @@ _OPW_WEATHER_ICONS_MAP: Mapping[Sequence[str], str] = {
 }
 
 
-def get_icons_map(icon_key: Sequence[str]) -> Optional[str]:
+def get_icons_map(ic_key: Sequence[str]) -> Optional[UnicodeWeatherKindIcons]:
     """TODO rename - get_icon_by_key(...)."""
-    try:
-        return _OPW_WEATHER_ICONS_MAP[icon_key]
-    except KeyError:
-        return None
+    return _OPW_WEATHER_ICONS.get(ic_key, None)
 
 
 def subscribe_coloriser(
-        key_type: WeatherInfoPart,
+        key_type: _T,
         coloriser: WeatherColorizer,
-        collection: MutableMapping[_Literal, WeatherColorizer],
+        collection: ColorMapT,
         ) -> None:
     """subscribe painters on weatheritem class name."""
     key = create_subscr_key(key_type)
@@ -65,7 +59,7 @@ def subscribe_coloriser(
         collection[key] = coloriser
 
 
-def create_subscr_key(item: WeatherInfoPart) -> _Literal:
+def create_subscr_key(item: _T) -> LiteralT:
     """make str from item name for using as key in coll."""
     if isinstance(item, type):
         return item.__name__

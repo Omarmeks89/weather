@@ -1,19 +1,15 @@
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Optional
-from typing import TypeVar
+from typing import TypeAlias
 from abc import ABC, abstractmethod
+from typing import Mapping
 
 from weather_utils import UnicodeWeatherKindIcons
-from weather_models import (
-        BaseWeatherTemperature,
-        BaseWeatherIconKind,
-        )
-from base_types import WeatherInfoPart, WeatherColorizer
+from base_types import WeatherInfoPart, WeatherColorizer, LiteralT
 
 
-_IconPic = TypeVar("_IconPic", str, bytes, covariant=True)
-_IconNum = TypeVar("_IconNum", bound=int, covariant=True)
+ColorableT: TypeAlias = WeatherInfoPart
 
 
 class UnicodeColorsBaseCodes(int, Enum):
@@ -27,7 +23,7 @@ class DrawMode(str, Enum):
     NOCOLOR: str = "NOCOLOR"
 
 
-_ICON_COLORS_MAP = {
+_ICON_COLORS_MAP: Mapping[LiteralT, int] = {
     UnicodeWeatherKindIcons.SUNNY: 220,
     UnicodeWeatherKindIcons.CLOUDY: 251,
     UnicodeWeatherKindIcons.PARTLY_CLOUDY: 254,
@@ -49,7 +45,7 @@ class WeatherColor:
 class BaseWeatherPalette(ABC):
 
     @abstractmethod
-    def set_color_by(self, item: WeatherInfoPart) -> WeatherColor:
+    def set_color_by(self, item: ColorableT) -> WeatherColor:
         pass
 
 
@@ -59,7 +55,7 @@ class BasePainter(WeatherColorizer):
         self._palette = palette
 
 
-def _get_icon_color(icon: _IconPic) -> Optional[_IconNum]:
+def _get_icon_color(icon: LiteralT) -> Optional[int]:
     return _ICON_COLORS_MAP.get(icon, None)
 
 
@@ -70,8 +66,8 @@ class Unicode256WeatherPalette(BaseWeatherPalette):
     def __init__(self) -> None:
         self._shift = 6
 
-    def set_color_by(self, item: BaseWeatherTemperature) -> WeatherColor:
-        abs_temp_value = item.abs_value
+    def set_color_by(self, item: ColorableT) -> WeatherColor:
+        abs_temp_value = item.value
         return self._mix_color(abs_temp_value)
 
     def _mix_color(self, value: float) -> WeatherColor:
@@ -94,29 +90,31 @@ class Unicode256WeatherPalette(BaseWeatherPalette):
 
 class Unicode256WeatherIconPalette(BaseWeatherPalette):
 
-    def set_color_by(self, icon: BaseWeatherIconKind) -> WeatherColor:
+    def set_color_by(self, icon: ColorableT) -> WeatherColor:
         return self._mix_color(icon)
 
-    def _mix_color(self, icon: BaseWeatherIconKind) -> WeatherColor:
-        color = self._fetch_color_from_palette(icon)
+    def _mix_color(self, icon: ColorableT) -> WeatherColor:
+        color = self._fetch_clr_from_palette(icon)
+        if color is None:
+            raise Exception
         return WeatherColor(color)
 
-    def _fetch_color_from_palette(self, icon: BaseWeatherIconKind) -> int:
-        return _get_icon_color(icon.picture)
+    def _fetch_clr_from_palette(self, icon: ColorableT) -> Optional[int]:
+        return _get_icon_color(icon.value)
 
 
 class WeatherPainter(BasePainter):
 
     def paint_in_color(
             self,
-            temperature: BaseWeatherTemperature,
+            temperature: WeatherInfoPart,
             ) -> str:
         color = self._palette.set_color_by(temperature)
         return f"{color.scheme}{temperature.draw()}"
 
     def paint_nocolor(
             self,
-            temperature: BaseWeatherTemperature,
+            temperature: WeatherInfoPart,
             ) -> str:
         return f"{temperature.draw()}"
 
@@ -126,13 +124,13 @@ class WeatherIconPainter(BasePainter):
 
     def paint_in_color(
             self,
-            icon: BaseWeatherIconKind,
+            icon: WeatherInfoPart,
             ) -> str:
         color = self._palette.set_color_by(icon)
-        return f"{color.scheme}{icon.picture}"
+        return f"{color.scheme}{icon.draw()}"
 
     def paint_nocolor(
             self,
-            icon: BaseWeatherIconKind,
+            icon: WeatherInfoPart,
             ) -> str:
-        return f"{icon.picture}"
+        return f"{icon.draw()}"

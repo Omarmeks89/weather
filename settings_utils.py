@@ -5,11 +5,14 @@ from typing import Mapping
 from typing import Union
 from typing import TypeVar
 from typing import TypeAlias
+from typing import Final
 from collections import OrderedDict
 
 
 _ReturnType = TypeVar("_ReturnType", Mapping[str, str], Path)
 _P: TypeAlias = Union[int, Union[str, bytes, PathLike[str], PathLike[bytes]]]
+
+NO_PATH: Final[str] = ""
 
 
 class PathError(Exception):
@@ -25,7 +28,7 @@ def _dotenv_mock() -> Callable[..., _ReturnType]:
 
     def _create_cfg_vls(
             *,
-            dotenv_path: _P = "",
+            dotenv_path: _P = NO_PATH,
             ) -> OrderedDict[str, str]:
         """return OrderedDict with params from .env."""
         config = OrderedDict()

@@ -1,12 +1,24 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar
+from typing import TypeAlias
 from typing import Generic
-from typing_extensions import Self
+from typing import Type, Any
 from typing import Union, cast
-
+from typing import MutableMapping
 
 _T = TypeVar("_T", contravariant=True)
 _TC = TypeVar("_TC", covariant=True)
+
+LiteralT: TypeAlias = Union[str, bytes]
+NumericT: TypeAlias = Union[float, int]
+_ColorizerT = TypeVar(
+        "_ColorizerT",
+        bound="WeatherColorizer",
+        covariant=True,
+        )
+ColorMapT: TypeAlias = MutableMapping[LiteralT, _ColorizerT]
+ColorableT = TypeVar("ColorableT", bound="WeatherInfoPart", contravariant=True)
+WT = TypeVar("WT", covariant=True)
 
 
 class WeatherArg(Generic[_T, _TC]):
@@ -55,9 +67,13 @@ class WeatherInfoPart(ABC):
 
     @classmethod
     @abstractmethod
-    def rebuild(cls, item: WeatherArg) -> Self:
+    def rebuild(cls: Type[WT], item: WeatherArg) -> WT:
         """factory method for runtime rebuilding."""
         pass
+
+    @property
+    @abstractmethod
+    def value(self) -> Any: pass
 
     @abstractmethod
     def draw(self) -> str:
@@ -71,4 +87,4 @@ class WeatherColorizer(ABC):
     def paint_in_color(self, item: WeatherInfoPart) -> str: pass
 
     @abstractmethod
-    def paint_no_color(self, item: WeatherInfoPart) -> str: pass
+    def paint_nocolor(self, item: WeatherInfoPart) -> str: pass

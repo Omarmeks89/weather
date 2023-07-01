@@ -1,19 +1,17 @@
 from abc import ABC, abstractmethod
 from typing import Optional
-from typing import TypeVar
+from typing import List
 
 from weather_models import FormattedWeather, WeatherDescription
-from weather_models import Weather, WeatherModel
+from weather_models import Weather, WeatherModel, BaseWeatherIconKind
+from weather_models import WeatherIcon
 from weather_utils import (
         create_subscr_key,
         get_icons_map,
         UnicodeWeatherKindIcons,
-        WeatherInfoPart,
         )
 from colors import BasePainter, DrawMode
-
-
-T = TypeVar("T", bound=WeatherInfoPart, covariant=True)
+from base_types import ColorMapT, LiteralT, ColorableT, LiteralArg
 
 
 def get_icon_by_description(
@@ -31,7 +29,7 @@ def get_icon_by_description(
 class WeatherFormatter(ABC):
 
     @abstractmethod
-    def format_weather(self, weather: Weather) -> FormattedWeather:
+    def format_weather(self, weather: WeatherModel) -> FormattedWeather:
         pass
 
 
@@ -41,24 +39,25 @@ class OpenweatherColorFormatter(WeatherFormatter):
 
     def __init__(
             self,
-            painters: dict[str, BasePainter],
+            painters: ColorMapT,
             mode: DrawMode,
             ) -> None:
         self._painters = painters
         self._mode = mode
 
     def format_weather(self, weather: WeatherModel) -> FormattedWeather:
-        temperature = None
-        items = []
+        temperature: LiteralT = ""
+        items: List[LiteralT] = []
         w_type = weather.weather_type
         w_icon = self._get_weather_icon(w_type)
+        icon = self._build_icon(w_icon)
         # have to format icon to concrete system type.
         if self._mode is DrawMode.FULLCOLOR:
-            for item in (weather.temperature, w_icon):
+            for item in (weather.temperature, icon):
                 items.append(self._colorise(item))
         else:
             temperature = self._make_monochrom(weather.temperature)
-            items.extend([temperature, w_icon])
+            items.extend([temperature, icon.__repr__()])
         full_weather_str = self._compile(items)
         items.clear()
         return FormattedWeather(
@@ -72,21 +71,25 @@ class OpenweatherColorFormatter(WeatherFormatter):
     def _get_weather_icon(
             self,
             description: WeatherDescription,
-            ) -> Optional[UnicodeWeatherKindIcons]:
+            ) -> UnicodeWeatherKindIcons:
         icon = get_icon_by_description(description)
-        return "" if icon is None else icon
+        return UnicodeWeatherKindIcons.EMPTY if icon is None else icon
 
-    def _colorise(self, item: T) -> str:
+    def _build_icon(self, icn: UnicodeWeatherKindIcons) -> BaseWeatherIconKind:
+        l_arg = LiteralArg(icn.value)
+        return WeatherIcon(l_arg)
+
+    def _colorise(self, item: ColorableT) -> str:
         painter = self._get_painter_for(item)
         return painter.paint_in_color(item)
 
-    def _make_monochrom(self, item: T) -> str:
+    def _make_monochrom(self, item: ColorableT) -> str:
         painter = self._get_painter_for(item)
         return painter.paint_nocolor(item)
 
-    def _get_painter_for(self, item: T) -> BasePainter:
+    def _get_painter_for(self, item: ColorableT) -> BasePainter:
         key = create_subscr_key(item)
-        return self._painters.get(key)
+        return self._painters[key]
 
     def _compile(self, items: list) -> str:
         items.append(self._end_unicode_line)
@@ -102,12 +105,4 @@ def format_weather(weather: Weather) -> str:
 
 
 if __name__ == "__main__":
-    from datetime import datetime
-    from weather_api_service import WeatherType
-    print(format_weather(Weather(
-        temperature=25,
-        weather_type=WeatherType.CLEAR,
-        sunrise=datetime.fromisoformat("2022-05-03 04:00:00"),
-        sunset=datetime.fromisoformat("2022-05-03 20:25:00"),
-        city="Moscow"
-    )))
+    pass
