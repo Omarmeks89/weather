@@ -98,7 +98,7 @@ class ExternalWeatherService(ABC):
 class OPW_WeatherService(ExternalWeatherService):
 
     def _get_temperature(self, data_src: JSONRespT) -> BaseWeatherTemperature:
-        """set via WeatherArg -> NumericArg."""
+        "TODO: have to separate specific classes creation from Service."""
         temperature = self._convert_temperature_to_arg(
                 data_src["main"]["temp"],
                 )
@@ -107,6 +107,7 @@ class OPW_WeatherService(ExternalWeatherService):
         return FarenheitTemperature(temperature)
 
     def _convert_temperature_to_arg(self, value: NumericT) -> NumericArg:
+        "TODO: have to separate specific classes creation from Service."""
         return NumericArg(round(value))
 
     def _parse_weather_descr(self, data_src: JSONRespT) -> WeatherDescription:

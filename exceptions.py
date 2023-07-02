@@ -3,4 +3,8 @@ class CantGetCoordinates(Exception):
 
 
 class ApiServiceError(Exception):
-    """Program can't current weather"""
+    """Program can't get current weather"""
+
+
+class StorageError(Exception):
+    """Program can`t fetch or store data"""

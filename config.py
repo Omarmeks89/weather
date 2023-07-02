@@ -1,4 +1,5 @@
 from typing import Literal, Union, TypeAlias, cast
+from pathlib import Path
 
 from settings import load_config
 from weather_utils import (
@@ -20,6 +21,7 @@ from weather_formatter import OpenweatherColorFormatter
 from weather_api_service import OPW_WeatherService
 from view import DisplaySettings, CurrentWeatherPrinter
 from base_types import ColorMapT
+from history import JSONFileWeatherStorage, save_weather
 
 
 DimUnit: TypeAlias = Union[Literal["metric"], Literal["imperial"]]
@@ -29,6 +31,8 @@ __all__ = [
         "formatter",
         "weather_service",
         "weather_printer",
+        "storage",
+        "save_weather",
         ]
 
 
@@ -49,6 +53,7 @@ OPENWEATHER_URL = (
     f"units={UNITS}"
 )
 
+
 # service items setup
 display_settings = DisplaySettings(DEF_DATETIME_FMT)
 weather_palette = Unicode256WeatherPalette()
@@ -60,6 +65,9 @@ i_painter = WeatherIconPainter(icons_palette)
 subscribe_coloriser(CelsiusTemperature, w_painter, COLORISERS)
 subscribe_coloriser(FarenheitTemperature, w_painter, COLORISERS)
 subscribe_coloriser(WeatherIcon, i_painter, COLORISERS)
+
+# setup storage
+storage = JSONFileWeatherStorage(Path.cwd() / app_config["DB_FILENAME"])
 
 mode = DrawMode.FULLCOLOR
 formatter = OpenweatherColorFormatter(COLORISERS, mode)

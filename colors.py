@@ -43,6 +43,7 @@ class BaseWeatherPalette(ABC):
 
     @abstractmethod
     def set_color_by(self, item: ColorableT) -> WeatherColor:
+        """set color by item name"""
         pass
 
 
@@ -94,7 +95,7 @@ class Unicode256WeatherIconPalette(BaseWeatherPalette):
     def _mix_color(self, icon: ColorableT) -> WeatherColor:
         color = self._fetch_clr_from_palette(icon)
         if color is None:
-            raise Exception
+            color = UnicodeColorsBaseCodes.ZERO
         return WeatherColor(color)
 
     def _fetch_clr_from_palette(self, icon: ColorableT) -> Optional[int]:

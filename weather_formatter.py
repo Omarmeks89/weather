@@ -97,8 +97,8 @@ class OpenweatherColorFormatter(WeatherFormatter):
 
 def format_weather(weather: WeatherModel) -> str:
     """Formats weather data in string"""
-    return (f"{weather.city!r}, температура {weather.temperature}°C, "
-            f"{weather.weather_type}\n"
+    return (f"{weather.city!r}, температура {weather.temperature}, "
+            f"{weather.weather_type.description}\n"
             f"Восход: {weather.sunrise.strftime('%H:%M')}\n"
             f"Закат: {weather.sunset.strftime('%H:%M')}\n")
 

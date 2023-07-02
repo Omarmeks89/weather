@@ -7,7 +7,6 @@ from exceptions import CantGetCoordinates
 
 
 USE_ROUNDED_COORDS = False
-
 Coordinate: TypeAlias = float
 
 
@@ -52,6 +51,7 @@ def _parse_coordinates(whereami_output: bytes) -> Coordinates:
 def _parse_coord(
         output: Sequence[str],
         coord_type: Literal["latitude"] | Literal["longitude"]) -> Coordinate:
+    """fetch coord from GPS service responce using re"""
     pattern = _create_coord_str_pattern(coord_type)
     match_, matched_grp = None, None
     for line in output:

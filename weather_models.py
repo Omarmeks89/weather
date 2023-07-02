@@ -6,7 +6,6 @@ from enum import Enum
 from base_types import WeatherArg, WeatherInfoPart, LiteralT, NumericT
 
 
-Celsius: TypeAlias = float
 WeatherType: TypeAlias = str
 
 TemperatureT = TypeVar(
@@ -25,11 +24,9 @@ __all__ = [
         "CelsiusTemperature",
         "FarenheitTemperature",
         "BaseWeatherTemperature",
-        "Weather",
         "WeatherModel",
         "FormattedWeather",
         "WeatherDescription",
-        "Celsius",
         ]
 
 
@@ -54,7 +51,7 @@ class BaseWeatherTemperature(WeatherInfoPart):
         return cast(TemperatureT, cls(item))
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__} {self._temp}{self._temp_kind}"
+        return f"{type(self).__name__} {self._temp.value}{self._temp_kind}"
 
     @property
     def kind(self) -> str:
@@ -129,15 +126,6 @@ class FormattedWeather:
     weather_descr: str
     sunrise: datetime
     sunset: datetime
-
-
-@dataclass(slots=True, frozen=True)
-class Weather:
-    temperature: Celsius
-    weather_type: WeatherType
-    sunrise: datetime
-    sunset: datetime
-    city: str
 
 
 @dataclass

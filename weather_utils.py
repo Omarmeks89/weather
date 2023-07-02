@@ -45,6 +45,7 @@ _OPW_WEATHER_ICONS: Mapping[Sequence[LiteralT], UnicodeWeatherKindIcons] = {
 
 
 def get_icon_by(ic_key: Sequence[str]) -> Optional[UnicodeWeatherKindIcons]:
+    """simple adapter for collection"""
     return _OPW_WEATHER_ICONS.get(ic_key, None)
 
 

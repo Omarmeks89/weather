@@ -1,10 +1,8 @@
 #!/usr/bin/env python3.10
-from pathlib import Path
-
 from coordinates import get_gps_coordinates
-from exceptions import ApiServiceError, CantGetCoordinates
-from history import save_weather, JSONFileWeatherStorage
+from exceptions import ApiServiceError, CantGetCoordinates, StorageError
 from config import formatter, weather_service, weather_printer
+from config import storage, save_weather
 
 
 def main() -> None:
@@ -21,10 +19,12 @@ def main() -> None:
     formatted_weather = formatter.format_weather(weather)
     weather_printer.display_weather(formatted_weather)
 
-    save_weather(
-        weather,
-        JSONFileWeatherStorage(Path.cwd() / "history.json")
-    )
+    try:
+        # base err handling for storage
+        save_weather(weather, storage)
+    except StorageError:
+        print("Storage file error.")
+        exit(1)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,9 @@
 .idea
 __pycache__
-env
+.env
 *.json
 *.txt
+*manual*
+*jsn*
+*_env
 
