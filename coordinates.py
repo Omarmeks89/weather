@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from subprocess import Popen, PIPE
-from typing import Literal, Sequence
+from typing import Literal, Sequence, TypeAlias
 import re
 
 from exceptions import CantGetCoordinates
@@ -8,11 +8,13 @@ from exceptions import CantGetCoordinates
 
 USE_ROUNDED_COORDS = False
 
+Coordinate: TypeAlias = float
+
 
 @dataclass(slots=True, frozen=True)
 class Coordinates:
-    latitude: float
-    longitude: float
+    latitude: Coordinate
+    longitude: Coordinate
 
 
 def get_gps_coordinates() -> Coordinates:
@@ -49,9 +51,7 @@ def _parse_coordinates(whereami_output: bytes) -> Coordinates:
 
 def _parse_coord(
         output: Sequence[str],
-        coord_type: Literal["latitude"] | Literal["longitude"]) -> float:
-    """fetch coords using re
-    return WeatherArg."""
+        coord_type: Literal["latitude"] | Literal["longitude"]) -> Coordinate:
     pattern = _create_coord_str_pattern(coord_type)
     match_, matched_grp = None, None
     for line in output:
@@ -65,11 +65,11 @@ def _parse_coord(
 
 def _create_coord_str_pattern(coord_type: str) -> re.Pattern:
     head = f"^(.*)?(?:(?:{coord_type}))"
-    tail = f"(.*)?(?P<{coord_type}>" + "(?:[0-9]{2}\.[0-9]{2,})).*$"
+    tail = f"(.*)?(?P<{coord_type}>" + "(?:[0-9]{2}\.[0-9]{2,})).*$"  # noqa
     return re.compile(f"{head}{tail}")
 
 
-def _parse_float_coordinate(value: str) -> float:
+def _parse_float_coordinate(value: str) -> Coordinate:
     try:
         return float(value)
     except ValueError:

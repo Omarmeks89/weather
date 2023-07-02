@@ -39,6 +39,7 @@ class WeatherColor:
 
 
 class BaseWeatherPalette(ABC):
+    """Use for set color by some parameter."""
 
     @abstractmethod
     def set_color_by(self, item: ColorableT) -> WeatherColor:
@@ -52,6 +53,7 @@ class BasePainter(WeatherColorizer):
 
 
 def _get_icon_color(icon: LiteralT) -> Optional[int]:
+    """fetch icon color by icon type."""
     return _ICON_COLORS_MAP.get(icon, None)
 
 

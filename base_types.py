@@ -82,6 +82,7 @@ class WeatherInfoPart(ABC):
 
 
 class WeatherColorizer(ABC):
+    """interface for colorising displayed items."""
 
     @abstractmethod
     def paint_in_color(self, item: WeatherInfoPart) -> str: pass

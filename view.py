@@ -1,14 +1,14 @@
 from sys import stdout
 from datetime import datetime
 from typing import TypeVar
-from typing import MutableMapping as MM
+from typing import MutableMapping as MutMapp
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, asdict
 
 from weather_models import FormattedWeather
 
 
-PT = TypeVar("PT", contravariant=True)
+ItemT = TypeVar("ItemT", contravariant=True)
 
 
 @dataclass(slots=True, frozen=True)
@@ -34,24 +34,24 @@ class CurrentWeatherPrinter(BaseWeatherPrinter):
         weather_preview = self._build_preview(weather)
         self._draw(weather_preview)
 
-    def _build_preview(self, weather: FormattedWeather) -> MM[str, str]:
+    def _build_preview(self, weather: FormattedWeather) -> MutMapp[str, str]:
         weather_items = asdict(weather)
         return self._create_preview(weather_items)
 
-    def _create_preview(self, items: MM[str, str]) -> MM[str, str]:
+    def _create_preview(self, items: MutMapp[str, str]) -> MutMapp[str, str]:
         for k, v in items.items():
             v = self._stringify_weather_item(v)
             items[k] = v
         return items
 
-    def _stringify_weather_item(self, item: PT) -> str:
+    def _stringify_weather_item(self, item: ItemT) -> str:
         """convert any item to str()."""
         if isinstance(item, datetime):
             return item.strftime(self._settings.datetime_fmt)
         else:
             return str(item)
 
-    def _draw(self, preview: MM[str, str]) -> None:
+    def _draw(self, preview: MutMapp[str, str]) -> None:
         result = (
                 f"{'Город / район:'.ljust(16)}{preview['city']}\n"
                 f"{'Погода:'.ljust(16)}{preview['temperature']}\n"

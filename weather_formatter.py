@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Optional
-from typing import List
+from typing import List, ClassVar
 
 from weather_models import FormattedWeather, WeatherDescription
-from weather_models import Weather, WeatherModel, BaseWeatherIconKind
+from weather_models import WeatherModel, BaseWeatherIconKind
 from weather_models import WeatherIcon
 from weather_utils import (
         create_subscr_key,
-        get_icons_map,
+        get_icon_by,
         UnicodeWeatherKindIcons,
         )
 from colors import BasePainter, DrawMode
@@ -20,9 +20,9 @@ def get_icon_by_description(
     """return Unicode weather icon depend on
     weather kind."""
     no_descr = ""
-    icon = get_icons_map((description.main, description.description))
+    icon = get_icon_by((description.main, description.description))
     if icon is None:
-        icon = get_icons_map((description.main, no_descr))
+        icon = get_icon_by((description.main, no_descr))
     return icon
 
 
@@ -35,7 +35,7 @@ class WeatherFormatter(ABC):
 
 class OpenweatherColorFormatter(WeatherFormatter):
 
-    _end_unicode_line: str = "\u001b[0m"
+    _end_unicode_line: ClassVar[str] = "\u001b[0m"
 
     def __init__(
             self,
@@ -51,13 +51,12 @@ class OpenweatherColorFormatter(WeatherFormatter):
         w_type = weather.weather_type
         w_icon = self._get_weather_icon(w_type)
         icon = self._build_icon(w_icon)
-        # have to format icon to concrete system type.
         if self._mode is DrawMode.FULLCOLOR:
             for item in (weather.temperature, icon):
                 items.append(self._colorise(item))
         else:
             temperature = self._make_monochrom(weather.temperature)
-            items.extend([temperature, icon.__repr__()])
+            items.extend([temperature, icon.value])
         full_weather_str = self._compile(items)
         items.clear()
         return FormattedWeather(
@@ -96,9 +95,9 @@ class OpenweatherColorFormatter(WeatherFormatter):
         return " ".join(items)
 
 
-def format_weather(weather: Weather) -> str:
+def format_weather(weather: WeatherModel) -> str:
     """Formats weather data in string"""
-    return (f"{weather.city}, температура {weather.temperature}°C, "
+    return (f"{weather.city!r}, температура {weather.temperature}°C, "
             f"{weather.weather_type}\n"
             f"Восход: {weather.sunrise.strftime('%H:%M')}\n"
             f"Закат: {weather.sunset.strftime('%H:%M')}\n")

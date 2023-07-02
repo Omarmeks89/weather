@@ -7,7 +7,7 @@ from history import save_weather, JSONFileWeatherStorage
 from config import formatter, weather_service, weather_printer
 
 
-def main():
+def main() -> None:
     try:
         coordinates = get_gps_coordinates()
     except CantGetCoordinates:

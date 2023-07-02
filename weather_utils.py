@@ -3,7 +3,8 @@ from typing import Mapping
 from typing import Optional
 from typing import Sequence
 
-from base_types import LiteralT, ColorMapT, WeatherColorizer, _T
+from base_types import LiteralT, ColorMapT, WeatherColorizer
+from base_types import _T as KeyT
 
 
 class TemperatureScaleKind(str, Enum):
@@ -43,23 +44,22 @@ _OPW_WEATHER_ICONS: Mapping[Sequence[LiteralT], UnicodeWeatherKindIcons] = {
 }
 
 
-def get_icons_map(ic_key: Sequence[str]) -> Optional[UnicodeWeatherKindIcons]:
-    """TODO rename - get_icon_by_key(...)."""
+def get_icon_by(ic_key: Sequence[str]) -> Optional[UnicodeWeatherKindIcons]:
     return _OPW_WEATHER_ICONS.get(ic_key, None)
 
 
 def subscribe_coloriser(
-        key_type: _T,
+        key_type: KeyT,
         coloriser: WeatherColorizer,
         collection: ColorMapT,
         ) -> None:
-    """subscribe painters on weatheritem class name."""
+    """subscribe painters by wished item class name."""
     key = create_subscr_key(key_type)
     if key not in collection:
         collection[key] = coloriser
 
 
-def create_subscr_key(item: _T) -> LiteralT:
+def create_subscr_key(item: KeyT) -> LiteralT:
     """make str from item name for using as key in coll."""
     if isinstance(item, type):
         return item.__name__

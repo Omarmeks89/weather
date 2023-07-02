@@ -3,13 +3,13 @@ import json
 from pathlib import Path
 from typing import TypedDict, Protocol
 
-from weather_models import Weather
+from weather_models import WeatherModel
 from weather_formatter import format_weather
 
 
 class WeatherStorage(Protocol):
     """Interface for any storage saving weather"""
-    def save(self, weather: Weather) -> None:
+    def save(self, weather: WeatherModel) -> None:
         raise NotImplementedError
 
 
@@ -18,7 +18,7 @@ class PlainFileWeatherStorage:
     def __init__(self, file: Path):
         self._file = file
 
-    def save(self, weather: Weather) -> None:
+    def save(self, weather: WeatherModel) -> None:
         now = datetime.now()
         formatted_weather = format_weather(weather)
         with open(self._file, "a") as f:
@@ -36,7 +36,7 @@ class JSONFileWeatherStorage:
         self._jsonfile = jsonfile
         self._init_storage()
 
-    def save(self, weather: Weather) -> None:
+    def save(self, weather: WeatherModel) -> None:
         history = self._read_history()
         history.append({
             "date": str(datetime.now()),
@@ -57,6 +57,6 @@ class JSONFileWeatherStorage:
             json.dump(history, f, ensure_ascii=False, indent=4)
 
 
-def save_weather(weather: Weather, storage: WeatherStorage) -> None:
+def save_weather(weather: WeatherModel, storage: WeatherStorage) -> None:
     """Saves weather in the storage"""
     storage.save(weather)

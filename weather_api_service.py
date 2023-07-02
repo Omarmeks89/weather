@@ -2,7 +2,8 @@ from datetime import datetime
 import json
 from json.decoder import JSONDecodeError
 import ssl
-from typing import Literal
+from typing import Literal, Mapping, TypeAlias
+from typing import Union, Any
 import urllib.request
 from urllib.error import URLError
 from abc import ABC, abstractmethod
@@ -21,12 +22,17 @@ from weather_utils import TemperatureScaleKind
 from base_types import NumericArg, LiteralT, NumericT
 
 
+JSONRespT: TypeAlias = Mapping[Any, Any]
+DimSystemT: TypeAlias = Union[Literal["metric"], Literal["imperial"]]
+SunTimeT: TypeAlias = Union[Literal["sunrise"], Literal["sunset"]]
+
+
 class ExternalWeatherService(ABC):
 
     def __init__(
             self,
             url: str,
-            units: Literal["metric"] | Literal["imperial"],
+            units: DimSystemT,
             ) -> None:
         self._url = url
         self._units = units
@@ -69,29 +75,29 @@ class ExternalWeatherService(ABC):
         )
 
     @abstractmethod
-    def _get_temperature(self, data_src: dict) -> BaseWeatherTemperature:
+    def _get_temperature(self, data_src: JSONRespT) -> BaseWeatherTemperature:
         pass
 
     @abstractmethod
-    def _parse_weather_descr(self, data_src: dict) -> WeatherDescription:
+    def _parse_weather_descr(self, data_src: JSONRespT) -> WeatherDescription:
         pass
 
     @abstractmethod
     def _parse_sun_time(
             self,
-            data_src: dict,
-            time: Literal["sunrise"] | Literal["sunset"],
+            data_src: JSONRespT,
+            time: SunTimeT,
             ) -> datetime:
         pass
 
     @abstractmethod
-    def _parse_city(self, data_src: dict) -> LiteralT:
+    def _parse_city(self, data_src: JSONRespT) -> LiteralT:
         pass
 
 
 class OPW_WeatherService(ExternalWeatherService):
 
-    def _get_temperature(self, data_src: dict) -> BaseWeatherTemperature:
+    def _get_temperature(self, data_src: JSONRespT) -> BaseWeatherTemperature:
         """set via WeatherArg -> NumericArg."""
         temperature = self._convert_temperature_to_arg(
                 data_src["main"]["temp"],
@@ -103,7 +109,7 @@ class OPW_WeatherService(ExternalWeatherService):
     def _convert_temperature_to_arg(self, value: NumericT) -> NumericArg:
         return NumericArg(round(value))
 
-    def _parse_weather_descr(self, data_src: dict) -> WeatherDescription:
+    def _parse_weather_descr(self, data_src: JSONRespT) -> WeatherDescription:
         try:
             weather_type = data_src["weather"][0]["main"]
             weather_descr = data_src["weather"][0]["description"]
@@ -116,12 +122,12 @@ class OPW_WeatherService(ExternalWeatherService):
 
     def _parse_sun_time(
             self,
-            data_src: dict,
-            time: Literal["sunrise"] | Literal["sunset"],
+            data_src: JSONRespT,
+            time: SunTimeT,
             ) -> datetime:
         return datetime.fromtimestamp(data_src["sys"][time])
 
-    def _parse_city(self, data_src: dict) -> LiteralT:
+    def _parse_city(self, data_src: JSONRespT) -> LiteralT:
         try:
             return data_src["name"]
         except KeyError:

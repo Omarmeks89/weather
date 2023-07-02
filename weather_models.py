@@ -1,14 +1,13 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import TypeAlias, Union, TypeVar, Type, cast
+from typing import TypeAlias, TypeVar, Type, cast
 from enum import Enum
 
-from base_types import WeatherArg, WeatherInfoPart, LiteralT
+from base_types import WeatherArg, WeatherInfoPart, LiteralT, NumericT
 
 
 Celsius: TypeAlias = float
 WeatherType: TypeAlias = str
-TemperatureValue: TypeAlias = Union[int, float]
 
 TemperatureT = TypeVar(
         "TemperatureT",
@@ -102,7 +101,7 @@ class CelsiusTemperature(BaseWeatherTemperature):
         self._temp_kind = self._scale.CELSIUS
 
     @property
-    def value(self) -> TemperatureValue:
+    def value(self) -> NumericT:
         return self._temp.value
 
 
@@ -113,7 +112,7 @@ class FarenheitTemperature(BaseWeatherTemperature):
         self._temp_kind = self._scale.FARENHEIT
 
     @property
-    def value(self) -> TemperatureValue:
+    def value(self) -> NumericT:
         return (self._temp.value - 32) * (5 / 9)
 
 
