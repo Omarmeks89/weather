@@ -31,7 +31,7 @@ Author: Alexey Goloburdin
 
 ## Changes
 
-I have realised weather colorising and icons.
+I have added weather colorising and icons.
 
 [![header.png](https://i.postimg.cc/YSH72JwG/header.png)](https://postimg.cc/mP8J8pkB)
 
@@ -39,6 +39,8 @@ I have made color depend on temperature. In general there is 7 colors. Additiona
 Added oportunity to display weather in Celsius and Farenheit scale. 
 
 All of colors and weather condition icons will be shown below.
+Was added basic error handling in module `history.py` and new Exception type - StorageError.
+Was little bit changed save operation.
 
 Application still use:
 ```bash
